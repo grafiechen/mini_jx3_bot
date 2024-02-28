@@ -72,6 +72,7 @@ class Jx3WebSocket(object):
         """
         try:
             ws_obj = json.loads(message)
+            logger.info(f"<r>接收到ws，ws消息内容：{ws_obj}</r>")
             data = WsData.parse_obj(ws_obj)
             event = EventRister.get_event(data)
             if event:
@@ -81,8 +82,8 @@ class Jx3WebSocket(object):
                     await handle_event(one_bot, event)
             else:
                 logger.error(f"<r>未知的ws消息类型：{data}</r>")
-        except Exception:
-            logger.error(f"未知ws消息：<g>{ws_obj}</g>")
+        except Exception as error:
+            logger.error(f"未知ws消息：<g>{ws_obj},error: {error}</g>")
 
     async def init(self) -> Optional[bool]:
         """

@@ -39,6 +39,8 @@ async def get_ws_status(group_id: int, event: Event.RecvEvent) -> bool:
         recv_type = GroupSetting.新闻推送
     if isinstance(event, Event.SerendipityEvent):
         recv_type = GroupSetting.奇遇推送
+    if isinstance(event, Event.ZhuEEvent):
+        recv_type = GroupSetting.诛恶事件
     if isinstance(event, Event.HorseRefreshEvent) or isinstance(
         event, Event.HorseCatchedEvent
     ):

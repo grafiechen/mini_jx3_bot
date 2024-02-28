@@ -16,7 +16,7 @@ __plugin_meta__ = PluginMetadata(
     name="自动插话",
     description="可以自动插话，频率与活跃度相关。",
     usage="~",
-    config=PluginConfig(default_status=False),
+    config=PluginConfig(),
 )
 
 # ----------------------------------------------------------------------------

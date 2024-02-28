@@ -58,6 +58,8 @@ class GroupInfo(Model):
     """ws-抓马推送开关"""
     ws_fuyao = fields.BooleanField(default=True)
     """ws-扶摇推送开关"""
+    ws_zhueshijian = fields.BooleanField(default=True)
+    """ws-诛恶事件开关"""
 
     class Meta:
         table = "group_info"
@@ -155,6 +157,8 @@ class GroupInfo(Model):
                 status = record.ws_horse
             case GroupSetting.扶摇监控:
                 status = record.ws_fuyao
+            case GroupSetting.诛恶事件:
+                status = record.ws_zhueshijian
         return status
 
     @classmethod
@@ -188,6 +192,8 @@ class GroupInfo(Model):
                 record.ws_horse = status
             case GroupSetting.扶摇监控:
                 record.ws_fuyao = status
+            case GroupSetting.诛恶事件:
+                record.ws_zhueshijian = status
             case _:
                 return False
         await record.save()
@@ -273,6 +279,7 @@ class GroupInfo(Model):
             "ws_serendipity": record.ws_serendipity,
             "ws_horse": record.ws_horse,
             "ws_fuyao": record.ws_fuyao,
+            "ws_zhueshijian": record.ws_zhueshijian,
         }
 
     @classmethod

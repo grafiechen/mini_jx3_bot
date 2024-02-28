@@ -13,7 +13,6 @@ from src.params import PluginConfig, admin_matcher_group
 from src.utils.browser import browser
 from src.utils.log import logger
 from src.utils.utils import GroupList_Async
-
 from ._jx3_event import RecvEvent, WsNotice
 from .data_source import get_ws_status, ws_init
 from .jx3_websocket import ws_client
@@ -25,8 +24,8 @@ __plugin_meta__ = PluginMetadata(
     config=PluginConfig(enable_managed=False),
 )
 
-
 driver = get_driver()
+
 
 # ----------------------------------------------------------------
 #   bot服务的各种hook
@@ -147,6 +146,7 @@ ws_notice = on(type="WsNotice", priority=2, block=True)
 async def _(bot: Bot, event: RecvEvent):
     """ws推送事件"""
     group_list = await bot.get_group_list()
+    logger.info(f"<g>加载ws事件{RecvEvent}。</g>")
     async for group_id in GroupList_Async(group_list):
         # 是否需要验证服务器
         if event.server:
@@ -155,13 +155,20 @@ async def _(bot: Bot, event: RecvEvent):
                 continue
 
         # 判断事件接受开启状态
-        status = await get_ws_status(group_id, event)
-        if status:
-            try:
-                await bot.send_group_msg(group_id=group_id, message=event.get_message())
-                await asyncio.sleep(random.uniform(0.3, 0.5))
-            except Exception:
-                pass
+
+        try:
+            status = await get_ws_status(group_id, event)
+            if status:
+                try:
+                    await bot.send_group_msg(group_id=group_id, message=event.get_message())
+                    await asyncio.sleep(random.uniform(0.3, 0.5))
+                except Exception as error:
+                    logger.info(f"<g>加载ws事件 出现异常{error}。</g>")
+                    pass
+        except Exception as error:
+            logger.info(f"<g>加载ws事件 get_ws_status出现异常{error}。</g>")
+
+
     await ws_recev.finish()
 
 

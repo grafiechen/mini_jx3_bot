@@ -17,7 +17,6 @@ from nonebot.matcher import Matcher
 from nonebot.params import Depends
 from nonebot.permission import SUPERUSER
 from nonebot.rule import Rule
-
 # from nonebot.permission import Permission
 from pydantic import BaseModel
 
@@ -79,6 +78,7 @@ class GroupSetting(Enum):
     奇遇推送 = auto()
     抓马监控 = auto()
     扶摇监控 = auto()
+    诛恶事件 = auto()
 
 
 class NoticeType(Enum):

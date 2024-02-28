@@ -111,11 +111,11 @@ class NLP:
 
         返回:
             * `str`：回复内容
+                        if msg := await self.chat_with_tencent(nickname, text):
+                return msg
         """
         if self.check_nlp_config():
-            if msg := await self.chat_with_tencent(nickname, text):
-                return msg
-        return await self.chat_with_qingyunke(nickname, text)
+            return await self.chat_with_qingyunke(nickname, text)
 
     async def get_voice(self, text: str) -> Optional[str]:
         """

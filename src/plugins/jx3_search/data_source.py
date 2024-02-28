@@ -11,15 +11,29 @@ from .config import FireWorkRecord
 
 
 def handle_data_price(data: list[list[dict]]) -> dict:
-    """处理物价数据"""
-    req_data = {}
+    """处理物价数据、出售状态"""
     for one_data in data:
         for one_item in one_data:
-            zone = one_item["zone"]
-            if zone not in req_data:
-                req_data[zone] = []
-            req_data[zone].append(one_item)
-    return req_data
+            sale = one_item['sales']
+            state_string = ''
+            if int(sale) == 1:
+                state_string = '出售'
+            elif int(sale) == 2:
+                state_string = '收购'
+            elif int(sale) == 3:
+                state_string = '想出'
+            elif int(sale) == 4:
+                state_string = '想收'
+            elif int(sale) == 5:
+                state_string = '成交'
+            elif int(sale) == 6:
+                state_string = '正出'
+            elif int(sale) == 7:
+                state_string = '公示'
+            else:
+                state_string = '未知'
+            one_item['sales'] = state_string
+    return data
 
 
 def handle_data_serendipity(data: list[dict]) -> dict:

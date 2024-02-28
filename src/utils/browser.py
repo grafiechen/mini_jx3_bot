@@ -1,3 +1,6 @@
+import os
+import shutil
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator, Optional
@@ -6,7 +9,6 @@ import jinja2
 from playwright.async_api import Browser, Error, Page, async_playwright
 
 from src.config import path_config
-
 from .log import logger
 
 
@@ -96,9 +98,9 @@ class MyBrowser:
         return img_raw
 
     async def _template_to_html(
-        self,
-        template_name: str,
-        **kwargs,
+            self,
+            template_name: str,
+            **kwargs,
     ) -> str:
         """
         说明:
@@ -158,7 +160,17 @@ class MyBrowser:
         """
 
         html = await self._template_to_html(template_name=pagename, **kwargs)
-        return await self._html_to_pic(pagename, html)
+        # 复制一个，避免造成后面生成的时候，报错提示 已关闭
+        temporary_name = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        pagename_arr = pagename.split(".")
+        new_pagename = pagename_arr[0] + temporary_name + '.html'
+        base_path = os.path.abspath('')
+        base_path = os.path.join(base_path, 'template')
+        shutil.copy(os.path.join(base_path, pagename), os.path.join(base_path, new_pagename))
+        try:
+            return await self._html_to_pic(new_pagename, html)
+        finally:
+            os.remove(os.path.join(base_path, new_pagename))
 
     async def get_image_from_url(self, url: str, width: int, height: int) -> bytes:
         """

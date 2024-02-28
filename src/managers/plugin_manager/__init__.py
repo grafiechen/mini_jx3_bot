@@ -69,6 +69,8 @@ def get_group_setting() -> GroupSetting:
                 return GroupSetting.抓马监控
             case "扶摇监控":
                 return GroupSetting.扶摇监控
+            case "诛恶事件":
+                return GroupSetting.诛恶事件
             case _:
                 matcher.skip()
 

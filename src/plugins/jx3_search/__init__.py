@@ -1,21 +1,28 @@
+import io
+import os
 import time
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import NoReturn, Optional
 
+import requests
+from PIL import Image
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.params import Depends, RegexDict
 from nonebot.plugin import PluginMetadata
 
+from src.config import jx3api_v2_config
 from src.internal.jx3api import JX3API
+from src.internal.jx3apiV2 import JX3APIV2
+from src.modules.baizhanyiwenlu_info import BaiZhanYiWenLuInfo
 from src.modules.group_info import GroupInfo
 from src.modules.search_record import SearchRecord
 from src.modules.ticket_info import TicketInfo
 from src.params import PluginConfig, user_matcher_group
 from src.utils.browser import browser
 from src.utils.log import logger
-
 from . import data_source as source
 from .config import JX3PROFESSION
 
@@ -25,6 +32,9 @@ __plugin_meta__ = PluginMetadata(
 
 api = JX3API()
 """jx3api接口实例"""
+api_v2 = JX3APIV2()
+"""jx3 万宝楼接口实例"""
+
 
 # ----------------------------------------------------------------
 #   正则枚举，已实现的查询功能
@@ -65,6 +75,7 @@ class REGEX(Enum):
     爱心榜 = r"^(?P<type1>爱心榜) (?P<value1>[\S]+)$|^(?P<type2>爱心榜) (?P<server>[\S]+) (?P<value2>[\S]+)$"
     神兵榜 = r"^(?P<type1>神兵榜) (?P<value1>[\S]+)$|^(?P<type2>神兵榜) (?P<server>[\S]+) (?P<value2>[\S]+)$"
     试炼榜 = r"^试炼榜 (?P<value1>[\S]+)$|^试炼榜 (?P<server>[\S]+) (?P<value2>[\S]+)$"
+    百战异闻录 = r"^百战$|^百战 (?P<server>[\S]+)$"
 
 
 # ----------------------------------------------------------------
@@ -102,6 +113,7 @@ aixin_query = user_matcher_group.on_regex(pattern=REGEX.爱心榜.value)
 shenbing_query = user_matcher_group.on_regex(pattern=REGEX.神兵榜.value)
 shilian_query = user_matcher_group.on_regex(pattern=REGEX.试炼榜.value)
 help = user_matcher_group.on_regex(pattern=r"^帮助$")
+baizhan_query = user_matcher_group.on_regex(pattern=REGEX.百战异闻录.value)
 
 
 # ----------------------------------------------------------------
@@ -116,7 +128,7 @@ def get_server() -> str:
     """
 
     async def dependency(
-        matcher: Matcher, event: GroupMessageEvent, regex_dict: dict = RegexDict()
+            matcher: Matcher, event: GroupMessageEvent, regex_dict: dict = RegexDict()
     ) -> str:
 
         _server = regex_dict.get("server")
@@ -139,7 +151,6 @@ def get_value() -> str:
     """
 
     async def dependency(regex_dict: dict = RegexDict()) -> str:
-
         value = regex_dict.get("value1")
         return value if value else regex_dict.get("value2")
 
@@ -153,7 +164,6 @@ def get_profession() -> str:
     """
 
     async def dependency(matcher: Matcher, name: str = get_value()) -> str:
-
         profession = JX3PROFESSION.get_profession(name)
         if profession:
             return profession
@@ -172,7 +182,7 @@ def get_server_with_keyword() -> str:
     """
 
     async def dependency(
-        matcher: Matcher, event: GroupMessageEvent, regex_dict: dict = RegexDict()
+            matcher: Matcher, event: GroupMessageEvent, regex_dict: dict = RegexDict()
     ) -> str:
         _server = regex_dict.get("server2")
         if _server:
@@ -356,12 +366,12 @@ async def _(event: GroupMessageEvent, server: str = get_server()) -> NoReturn:
     data = response.data
     msg = (
         f"日常[{server}]\n"
-        f'当前时间：{data.get("date","未知")} 星期{data.get("week","未知")}\n'
-        f'【秘境大战】{data.get("war","未知")}\n'
-        f'【战场任务】{data.get("battle","未知")}\n'
-        f'【阵营任务】{data.get("camp","未知")}\n'
-        f'【公共任务】{data.get("relief","未知")}\n'
-        f'【门派事件】{data.get("school","未知")}\n'
+        f'当前时间：{data.get("date", "未知")} 星期{data.get("week", "未知")}\n'
+        f'【秘境大战】{data.get("war", "未知")}\n'
+        f'【战场任务】{data.get("battle", "未知")}\n'
+        f'【阵营任务】{data.get("camp", "未知")}\n'
+        f'【公共任务】{data.get("relief", "未知")}\n'
+        f'【门派事件】{data.get("school", "未知")}\n'
     )
     if data.get("draw"):
         msg += f'【美人画像】{data.get("draw")}\n'
@@ -392,6 +402,49 @@ async def _(event: GroupMessageEvent, server: str = get_server()) -> NoReturn:
     status = "已开服" if data["status"] == 1 else "维护中"
     msg = f"{server} 当前状态是[{status}]"
     await server_query.finish(msg)
+
+
+@baizhan_query.handle(parameterless=[cold_down(name="百战异闻录查询", cd_time=0)])
+async def _(event: GroupMessageEvent) -> NoReturn:
+    """开服查询"""
+    logger.info(
+        f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 百战异闻录查询"
+    )
+    """先判断是否已经同步过了，如果同步过了，那就不进行查询了直接返回"""
+    info = await BaiZhanYiWenLuInfo.get_info()
+    if info:
+        server_open_time = info['server_open_time']
+        if info['valid'] and len(info['url']) > 10 and (
+                time.time() - server_open_time < (60 * 60 * 24 * 7 + 60 * 60 * 4)):
+            logger.info(f"<y> 从本地查询百战信息</y>")
+            img = info["url"]
+            await baizhan_query.finish(MessageSegment.image(Path(img)))
+        if time.time() - server_open_time < (60 * 60 * 1):
+            msg = f"开服一个小时后才可以查询，开服时间为 {time.localtime(server_open_time)}"
+            await baizhan_query.finish(msg)
+        if time.time() - server_open_time > (60 * 60 * 24 * 7 + 60 * 60 * 4):
+            today = datetime.datetime.today()
+            one_day = datetime.timedelta(days=today.weekday())
+            today -= one_day
+            timestamp = time.mktime(datetime.datetime(today.year, today.month, today.day, 15, 30, 00).timetuple())
+            await BaiZhanYiWenLuInfo.update_info_when_server_reopen(open_time=timestamp)
+
+    response = await api_v2.view_active_monster(scale=1, robot='小猫饼', token=jx3api_v2_config.api_token)
+    if response.code != 200:
+        msg = f"查询失败，{response.msg}"
+        await server_query.finish(msg)
+    logger.info(f"<y> 调用jx3api查询百战信息</y>")
+    data = response.data
+    request = requests.get(data['url'])
+    img = Image.open(io.BytesIO(request.content))
+    base_path = os.path.abspath('')
+    base_path = os.path.join(base_path, 'template')
+    base_path = os.path.join(base_path, 'baizhan')
+    img_path = os.path.join(base_path, 'info.png')
+    img.save(img_path)
+    """把百战信息放到数据库里"""
+    await BaiZhanYiWenLuInfo.update_info_when_search_success(url=img_path)
+    await baizhan_query.finish(MessageSegment.image(Path(img_path)))
 
 
 @gold_query.handle(parameterless=[cold_down(name="金价查询", cd_time=0)])
@@ -451,10 +504,10 @@ async def _(event: GroupMessageEvent, name: str = get_profession()) -> NoReturn:
 
     data = response.data
     msg = (
-        MessageSegment.text(f'{data.get("name")}配装：\nPve装备：\n')
-        + MessageSegment.image(data.get("pve"))
-        + MessageSegment.text("Pvp装备：\n")
-        + MessageSegment.image(data.get("pvp"))
+            MessageSegment.text(f'{data.get("name")}配装：\nPve装备：\n')
+            + MessageSegment.image(data.get("pve"))
+            + MessageSegment.text("Pvp装备：\n")
+            + MessageSegment.image(data.get("pvp"))
     )
     await equip_group_query.finish(msg)
 
@@ -500,9 +553,9 @@ async def _(event: GroupMessageEvent, name: str = get_value()) -> NoReturn:
     """前置查询"""
     logger.info(f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 前置查询 | 请求：{name}")
     if api.config.api_token:
-        response = await api.data_lucky_require(name=name)
+        response = await api.data_luck_require(name=name)
     else:
-        response = await api.data_lucky_sub_require(name=name)
+        response = await api.data_luck_sub_require(name=name)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await condition_query.finish(msg)
@@ -518,9 +571,9 @@ async def _(event: GroupMessageEvent, name: str = get_value()) -> NoReturn:
     """攻略查询"""
     logger.info(f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 攻略查询 | 请求：{name}")
     if api.config.api_token:
-        response = await api.data_lucky_strategy(name=name)
+        response = await api.data_luck_strategy(name=name)
     else:
-        response = await api.data_lucky_sub_strategy(name=name)
+        response = await api.data_luck_sub_strategy(name=name)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await strategy_query.finish(msg)
@@ -561,7 +614,7 @@ async def _(event: GroupMessageEvent, server: str = get_server()) -> NoReturn:
     logger.info(
         f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 沙盘查询 server：{server}"
     )
-    response = await api.view_sand_search(server=server)
+    response = await api.view_server_sand(server=server, robot='小猫饼', token=jx3api_v2_config.api_token)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await saohua_query.finish(msg)
@@ -571,17 +624,12 @@ async def _(event: GroupMessageEvent, server: str = get_server()) -> NoReturn:
     await sand_query.finish(MessageSegment.image(url))
 
 
-# -------------------------------------------------------------
-#   下面是使用模板生成的图片事件
-# -------------------------------------------------------------
-
-
 @price_query.handle(parameterless=[cold_down(name="物价查询", cd_time=10)])
 async def _(event: GroupMessageEvent, name: str = get_value()) -> NoReturn:
     """物价查询"""
     logger.info(f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 物价查询 | 请求：{name}")
     if api.config.api_token:
-        response = await api.data_trade_search(name=name)
+        response = await api.data_trade_record(name=name)
     else:
         response = await api.data_trade_xiaohei(name=name)
     if response.code != 200:
@@ -591,12 +639,19 @@ async def _(event: GroupMessageEvent, name: str = get_value()) -> NoReturn:
     data = response.data
     pagename = "物品价格.html"
     item_name = data.get("name")
-    item_info = data.get("info")
+    item_info = data.get("desc")
     if api.config.api_token:
-        item_img = data.get("url")
+        item_img = data.get("view")
     else:
-        item_img=data.get("upload")
+        item_img = data.get("upload")
     item_data = source.handle_data_price(data.get("data"))
+    # xaxis_data = []
+    # series_data = []
+    # avg_price_30 = 0
+    # follow_heat_30 = 0
+    # max_price = 0
+    # sell_cnt_30 = 0
+
     img = await browser.template_to_image(
         pagename=pagename,
         name=item_name,
@@ -609,9 +664,9 @@ async def _(event: GroupMessageEvent, name: str = get_value()) -> NoReturn:
 
 @serendipity_query.handle(parameterless=[cold_down(name="角色奇遇", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    name: str = get_value(),
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        name: str = get_value(),
 ) -> NoReturn:
     """角色奇遇查询"""
     logger.info(
@@ -619,7 +674,7 @@ async def _(
     )
 
     ticket = await TicketInfo.get_ticket()
-    response = await api.data_lucky_serendipity(server=server, name=name, ticket=ticket)
+    response = await api.data_luck_serendipity(server=server, name=name, ticket=ticket)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await serendipity_query.finish(msg)
@@ -635,26 +690,21 @@ async def _(
 
 @serendipity_list_query.handle(parameterless=[cold_down(name="奇遇统计", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    name: str = get_value(),
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        name: str = get_value(),
 ) -> NoReturn:
     """奇遇统计查询"""
     logger.info(
         f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 奇遇统计查询 | 请求：server:{server},serendipity:{name}"
     )
-    response = await api.data_lucky_statistical(server=server, name=name)
+    response = await api.view_luck_adventure(scale=2, server=server, name=name, robot='小猫饼',
+                                             token=jx3api_v2_config.api_token)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await serendipity_list_query.finish(msg)
 
-    data = response.data
-    pagename = "奇遇统计.html"
-    get_data = source.handle_data_serendipity_list(data)
-    img = await browser.template_to_image(
-        pagename=pagename, server=server, name=name, data=get_data
-    )
-    await serendipity_list_query.finish(MessageSegment.image(img))
+    await serendipity_list_query.finish(MessageSegment.image(response.data['url']))
 
 
 @serendipity_summary_query.handle(parameterless=[cold_down(name="奇遇汇总", cd_time=10)])
@@ -663,7 +713,7 @@ async def _(event: GroupMessageEvent, server: str = get_server()) -> NoReturn:
     logger.info(
         f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 奇遇汇总查询 | 请求：{server}"
     )
-    response = await api.data_lucky_collect(server=server)
+    response = await api.data_luck_collect(server=server)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await serendipity_summary_query.finish(msg)
@@ -679,9 +729,9 @@ async def _(event: GroupMessageEvent, server: str = get_server()) -> NoReturn:
 
 @match_query.handle(parameterless=[cold_down(name="战绩查询", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    name: str = get_value(),
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        name: str = get_value(),
 ) -> NoReturn:
     """战绩查询"""
     logger.info(
@@ -704,9 +754,9 @@ async def _(
 
 @equip_query.handle(parameterless=[cold_down(name="装备属性", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    name: str = get_value(),
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        name: str = get_value(),
 ) -> NoReturn:
     """装备属性查询"""
     logger.info(
@@ -729,15 +779,15 @@ async def _(
 
 @firework_query.handle(parameterless=[cold_down(name="烟花记录", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    name: str = get_value(),
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        name: str = get_value(),
 ) -> NoReturn:
     """烟花记录查询"""
     logger.info(
         f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 烟花记录查询 | 请求：server:{server},name:{name}"
     )
-    response = await api.data_role_firework(server=server, name=name)
+    response = await api.data_look_firework(server=server, name=name)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
         await firework_query.finish(msg)
@@ -753,44 +803,30 @@ async def _(
 
 @recruit_query.handle(parameterless=[cold_down(name="招募查询", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server_with_keyword(),
-    keyword: Optional[str] = get_keyword(),
+        event: GroupMessageEvent,
+        server: str = get_server_with_keyword(),
+        keyword: Optional[str] = get_keyword(),
 ) -> NoReturn:
     """招募查询"""
     logger.info(
         f"<y>群{event.group_id}</y> | <g>{event.user_id}</g> | 招募查询 | 请求：server:{server},keyword:{keyword}"
     )
-    response = await api.data_team_member_recruit(server=server, keyword=keyword)
+    response = await api.view_member_recruit(server=server, keyword=keyword, robot='小猫饼',
+                                             token=jx3api_v2_config.api_token)
     if response.code != 200:
         msg = f"查询失败，{response.msg}"
-        await recruit_query.finish(msg)
+        await saohua_query.finish(msg)
 
     data = response.data
-    get_time = datetime.fromtimestamp(data.get("time")).strftime("%H:%M:%S")
-    data: list[dict] = data.get("data")
-    num = len(data)
-    if num > 50:
-        data = data[:50]
-    else:
-        num = None
-    get_data = source.handle_data_recruit(data)
-    pagename = "团队招募.html"
-    img = await browser.template_to_image(
-        pagename=pagename,
-        server=server,
-        time=get_time,
-        data=get_data,
-        num=num,
-    )
-    await recruit_query.finish(MessageSegment.image(img))
+    url = data.get("url")
+    await sand_query.finish(MessageSegment.image(url))
 
 
 @zili_query.handle(parameterless=[cold_down(name="资历排行", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server_with_keyword(),
-    kungfu: Optional[str] = get_keyword(),
+        event: GroupMessageEvent,
+        server: str = get_server_with_keyword(),
+        kungfu: Optional[str] = get_keyword(),
 ) -> NoReturn:
     """资历榜"""
     logger.info(
@@ -824,11 +860,11 @@ async def _(
 @xinhuo_query.handle(parameterless=[cold_down(name="排行榜", cd_time=10)])
 @zixing_query.handle(parameterless=[cold_down(name="排行榜", cd_time=10)])
 async def _(
-    matcher: Matcher,
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    type_: str = get_type(),
-    tittle: str = get_tittle(),
+        matcher: Matcher,
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        type_: str = get_type(),
+        tittle: str = get_tittle(),
 ) -> NoReturn:
     """个人排名查询"""
     logger.info(
@@ -852,12 +888,12 @@ async def _(
 @aixin_query.handle(parameterless=[cold_down(name="排行榜", cd_time=10)])
 @shenbing_query.handle(parameterless=[cold_down(name="排行榜", cd_time=10)])
 async def _(
-    matcher: Matcher,
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    type_: str = get_type(),
-    tittle: str = get_tittle(),
-    camp: str = get_camp(),
+        matcher: Matcher,
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        type_: str = get_type(),
+        tittle: str = get_tittle(),
+        camp: str = get_camp(),
 ) -> NoReturn:
     """帮会排名"""
     type_ = camp + type_
@@ -881,9 +917,9 @@ async def _(
 
 @shilian_query.handle(parameterless=[cold_down(name="排行榜", cd_time=10)])
 async def _(
-    event: GroupMessageEvent,
-    server: str = get_server(),
-    school: str = get_value(),
+        event: GroupMessageEvent,
+        server: str = get_server(),
+        school: str = get_value(),
 ) -> NoReturn:
     """试炼之地排行"""
     logger.info(

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from src.config import Jx3ApiConfig
 
+
 class Response(BaseModel):
     """返回数据模型"""
 
@@ -16,6 +17,7 @@ class Response(BaseModel):
     """返回数据"""
     time: int
     """时间戳"""
+
 
 class JX3API:
     """jx3api接口类"""
@@ -38,6 +40,7 @@ class JX3API:
             * `num`: 可选，查询天数，默认为0
         """
         ...
+
     async def data_active_calculate(self, *, num: int = ...) -> Response:
         """
         说明:
@@ -47,6 +50,7 @@ class JX3API:
             * `num`：可选，计算天数，搜索当天前后指定日期的日常信息
         """
         ...
+
     async def data_trade_demon(self, *, server: str, limit: int = ...) -> Response:
         """
         说明：
@@ -57,6 +61,7 @@ class JX3API:
             * `limit`： 单页数量，设置单页返回的数量；默认值 : 10。
         """
         ...
+
     async def data_server_check(self, *, server: str) -> Response:
         """
         说明：
@@ -66,6 +71,7 @@ class JX3API:
             * `server`：服务器名
         """
         ...
+
     async def data_server_status(self, *, server: str) -> Response:
         """
         说明:
@@ -75,6 +81,7 @@ class JX3API:
             * `server`：服务器名
         """
         ...
+
     async def data_server_search(self, *, name: str) -> Response:
         """
         说明:
@@ -84,6 +91,7 @@ class JX3API:
             * `name`：区服别名，查询指定别名的区服信息。
         """
         ...
+
     async def data_exam_search(self, *, question: str, limit: int = ...) -> Response:
         """
         说明:
@@ -94,6 +102,7 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 10。
         """
         ...
+
     async def data_web_news(self, *, limit: int = ...) -> Response:
         """
         说明:
@@ -103,6 +112,7 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 10。
         """
         ...
+
     async def data_web_announce(self, *, limit: int = ...) -> Response:
         """
         说明:
@@ -112,6 +122,7 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 10。
         """
         ...
+
     async def data_trade_feiniu(self, *, name: str) -> Response:
         """
         说明:
@@ -121,6 +132,7 @@ class JX3API:
             * `name`：物品名称，查询指定物品的价格信息。
         """
         ...
+
     async def data_trade_xiaohei(self, *, name: str) -> Response:
         """
         说明:
@@ -130,8 +142,9 @@ class JX3API:
             * `name`：物品名称，查询指定物品的价格信息。
         """
         ...
+
     async def data_home_flower(
-        self, *, server: str, map: str = ..., flower: str = ...
+            self, *, server: str, map: str = ..., flower: str = ...
     ) -> Response:
         """
         说明:
@@ -143,6 +156,7 @@ class JX3API:
             * `flower`：可选， 用于筛选鲜花
         """
         ...
+
     async def data_home_furniture(self, *, name: str) -> Response:
         """
         说明:
@@ -152,6 +166,7 @@ class JX3API:
             * `name`：装饰名称，查询指定装饰的详细信息。
         """
         ...
+
     async def data_home_travel(self, *, name: str) -> Response:
         """
         说明:
@@ -161,6 +176,7 @@ class JX3API:
             * `name`：地图名称，查询指定地图的产出装饰
         """
         ...
+
     async def data_school_snacks(self, *, name: str) -> Response:
         """
         说明:
@@ -170,6 +186,7 @@ class JX3API:
             * `name`：心法名称
         """
         ...
+
     async def data_school_equip(self, *, name: str) -> Response:
         """
         说明:
@@ -179,6 +196,7 @@ class JX3API:
             * `name`：心法名称
         """
         ...
+
     async def data_school_matrix(self, *, name: str) -> Response:
         """
         说明:
@@ -188,6 +206,7 @@ class JX3API:
             * `name`：心法名称
         """
         ...
+
     async def data_school_macro(self, *, name: str) -> Response:
         """
         说明:
@@ -197,7 +216,8 @@ class JX3API:
             * `name`：心法名称
         """
         ...
-    async def data_lucky_sub_require(self, *, name: str) -> Response:
+
+    async def data_luck_sub_require(self, *, name: str) -> Response:
         """
         说明:
             触发奇遇的前置条件
@@ -206,7 +226,8 @@ class JX3API:
             * `name`：奇遇名称，查询指定奇遇的前置条件。
         """
         ...
-    async def data_lucky_sub_strategy(self, *, name: str) -> Response:
+
+    async def data_luck_sub_strategy(self, *, name: str) -> Response:
         """
         说明:
             奇遇任务流程
@@ -215,12 +236,14 @@ class JX3API:
             * `name`：奇遇名称，查询指定奇遇的任务流程；
         """
         ...
+
     async def data_chat_random(self) -> Response:
         """
         说明:
             召唤一条骚话。
         """
         ...
+
     async def data_useless_refresh(self, *, name: str) -> Response:
         """
         说明:
@@ -230,6 +253,7 @@ class JX3API:
             * `name`：地图名称/马驹名称
         """
         ...
+
     def app_server(self, *, name: str) -> Optional[str]:
         """
         说明:
@@ -242,6 +266,7 @@ class JX3API:
             * `str`：主区名称
         """
         ...
+
     # -------------------------------------------------------------------
     #                            VIP API
     # -------------------------------------------------------------------
@@ -254,7 +279,18 @@ class JX3API:
             * `ticket`：推栏标识，检查指定标识是否有效；
         """
         ...
+
     async def data_trade_search(self, *, name: str) -> Response:
+        """
+        说明:
+            推栏 token 是否有效
+
+        参数:
+            * `ticket`：推栏标识，检查指定标识是否有效；
+        """
+        ...
+
+    async def data_trade_record(self, *, name: str) -> Response:
         """
         说明:
             黑市物品价格统计
@@ -263,6 +299,7 @@ class JX3API:
             * `name`：物品名称
         """
         ...
+
     async def data_movie_editor(self, *, name: str) -> Response:
         """
         说明:
@@ -272,7 +309,8 @@ class JX3API:
             * `name`：物品名称，查询指定名称的物品编号信息。
         """
         ...
-    async def data_lucky_require(self, *, name: str) -> Response:
+
+    async def data_luck_require(self, *, name: str) -> Response:
         """
         说明:
             触发奇遇的前置条件
@@ -281,8 +319,9 @@ class JX3API:
             * `name`：奇遇名称
         """
         ...
-    async def data_lucky_serendipity(
-        self, *, server: str, name: str, ticket: str
+
+    async def data_luck_serendipity(
+            self, *, server: str, name: str, ticket: str
     ) -> Response:
         """
         说明:
@@ -294,8 +333,9 @@ class JX3API:
             * `ticket`：推栏标识，检查数据完整性
         """
         ...
-    async def data_lucky_statistical(
-        self, *, server: str, name: str, limit: int = ...
+
+    async def data_luck_statistical(
+            self, *, server: str, name: str, limit: int = ...
     ) -> Response:
         """
         说明:
@@ -307,7 +347,26 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 20
         """
         ...
-    async def data_lucky_collect(self, *, server: str, days: int = ...) -> Response:
+
+    async def view_luck_adventure(
+            self, *, scale: int, server: str, name: int, robot: str, token: str
+    ) -> Response:
+        """
+        说明:
+            统计奇遇近期触发角色记录 返回图片
+
+        参数:
+          [×] 可选的 [scale] 网页规模，可设置网页大小，可选范围[1，2]，设置值越大越清晰，图片也会更大；
+        [√] 必选的 [server] 区服名称，筛选数据；
+        [√] 必选的 [name] 角色名称，筛选数据；
+        [×] 可选的 [ticket] 推栏标识，检查数据完整性；
+        [√] 必选的 [robot] 机器人昵称，绘制底部版权信息；
+        [×] 可选的 [cache] 缓存模式，可设置文件缓存，可有效提高响应速度，0 = 关闭，1 = 开启；默认值 : 1；
+        [√] 必选的 [token] 站点标识，检查请求权限。
+        """
+        ...
+
+    async def data_luck_collect(self, *, server: str, days: int = ...) -> Response:
         """
         说明:
             统计奇遇近期触发角色记录
@@ -317,7 +376,8 @@ class JX3API:
             * `days`：汇总时间，汇总指定天数内的奇遇记录；默认值 : 7
         """
         ...
-    async def data_lucky_server_serendipity(self, *, name: str) -> Response:
+
+    async def data_luck_server_serendipity(self, *, name: str) -> Response:
         """
         说明:
             统计全服奇遇记录
@@ -326,8 +386,9 @@ class JX3API:
             * `name`：奇遇名称，查询指定奇遇的全服记录
         """
         ...
-    async def data_lucky_server_statistical(
-        self, *, name: str, limit: int = ...
+
+    async def data_luck_server_statistical(
+            self, *, name: str, limit: int = ...
     ) -> Response:
         """
         说明:
@@ -338,7 +399,8 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 20
         """
         ...
-    async def data_lucky_strategy(self, *, name: str) -> Response:
+
+    async def data_luck_strategy(self, *, name: str) -> Response:
         """
         说明:
             奇遇任务流程
@@ -347,8 +409,9 @@ class JX3API:
             * `name`：奇遇名称，查询指定奇遇的任务流程
         """
         ...
+
     async def data_arena_recent(
-        self, *, server: str, name: str, ticket: str, mode: int = ...
+            self, *, server: str, name: str, ticket: str, mode: int = ...
     ) -> Response:
         """
         说明:
@@ -361,8 +424,9 @@ class JX3API:
             * `mode`：可选，比赛模式，可选值22/33/55，未输入或输入0 时返回全部模式记录。
         """
         ...
+
     async def data_arena_awesome(
-        self, *, ticket: str, mode: int = ..., limit: int = ...
+            self, *, ticket: str, mode: int = ..., limit: int = ...
     ) -> Response:
         """
         说明:
@@ -374,6 +438,7 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 20
         """
         ...
+
     async def data_arena_schools(self, *, ticket: str, mode: int = ...) -> Response:
         """
         说明:
@@ -384,6 +449,7 @@ class JX3API:
             * `mode`：比赛模式，可选值22/33/55，默认值33。
         """
         ...
+
     async def data_role_roleInfo(self, *, server: str, name: str) -> Response:
         """
         说明:
@@ -394,8 +460,9 @@ class JX3API:
             * `name`：角色名
         """
         ...
+
     async def data_save_roleInfo(
-        self, *, server: str, roleId: str, ticket: str
+            self, *, server: str, roleId: str, ticket: str
     ) -> Response:
         """
         说明:
@@ -407,8 +474,9 @@ class JX3API:
             * `ticket`：推栏标识，检查请求权限
         """
         ...
+
     async def data_role_teamCdList(
-        self, *, server: str, name: str, ticket: str
+            self, *, server: str, name: str, ticket: str
     ) -> Response:
         """
         说明:
@@ -420,8 +488,9 @@ class JX3API:
             * `ticket`：推栏标识，检查请求权限
         """
         ...
+
     async def data_role_achievement(
-        self, *, server: str, role: str, name: str, ticket: str
+            self, *, server: str, role: str, name: str, ticket: str
     ) -> Response:
         """
         说明:
@@ -434,8 +503,9 @@ class JX3API:
             * `ticket`：推栏标识，检查请求权限
         """
         ...
+
     async def data_role_attribute(
-        self, *, server: str, name: str, ticket: str
+            self, *, server: str, name: str, ticket: str
     ) -> Response:
         """
         说明:
@@ -447,7 +517,8 @@ class JX3API:
             * `ticket`：推栏标识，检查请求权限
         """
         ...
-    async def data_role_firework(self, *, server: str, name: str) -> Response:
+
+    async def data_look_firework(self, *, server: str, name: str) -> Response:
         """
         说明:
             角色烟花燃放记录
@@ -457,8 +528,9 @@ class JX3API:
             * `name`：角色名称，查询指定角色的烟花燃放记录
         """
         ...
+
     async def data_team_items_statistical(
-        self, *, server: str, name: str, limit: int = ...
+            self, *, server: str, name: str, limit: int = ...
     ) -> Response:
         """
         说明:
@@ -470,8 +542,9 @@ class JX3API:
             * `limit`：单页数量，设置单页返回的数量；默认值 : 20
         """
         ...
+
     async def data_team_items_collect(
-        self, *, server: str, days: int = ...
+            self, *, server: str, days: int = ...
     ) -> Response:
         """
         说明:
@@ -482,8 +555,9 @@ class JX3API:
             * `days`：单页数量，设置单页返回的数量；默认值 : 7
         """
         ...
+
     async def data_team_member_recruit(
-        self, *, server: str, keyword: str = ...
+            self, *, server: str, keyword: str = ...
     ) -> Response:
         """
         说明:
@@ -494,8 +568,9 @@ class JX3API:
             * `keyword`：关键字，筛选团长名称，活动名称，招募信息；
         """
         ...
+
     async def data_school_seniority(
-        self, *, ticket: str, school: str = ..., server: str = ...
+            self, *, ticket: str, school: str = ..., server: str = ...
     ) -> Response:
         """
         说明:
@@ -507,6 +582,7 @@ class JX3API:
             * `server`：区服名称，筛选记录，默认值 : ALL
         """
         ...
+
     async def data_rank_various(self, *, type: str, server: str) -> Response:
         """
         说明:
@@ -517,6 +593,7 @@ class JX3API:
             * `server`：区服名称，筛选记录
         """
         ...
+
     async def data_rank_tribe(self, *, type: str, server: str) -> Response:
         """
         说明:
@@ -527,6 +604,7 @@ class JX3API:
             * `server`：区服名称，筛选记录
         """
         ...
+
     async def data_rank_excellent(self, *, type: str, server: str) -> Response:
         """
         说明:
@@ -537,6 +615,7 @@ class JX3API:
             * `server`：区服名称，筛选记录
         """
         ...
+
     async def data_rank_trials(self, *, server: str, school: str) -> Response:
         """
         说明:
@@ -547,6 +626,7 @@ class JX3API:
             * `school`：门派简称，查询指定门派的试炼榜单
         """
         ...
+
     # ------------------------------------------------------------
     #                      VRF  API
     # ------------------------------------------------------------
@@ -559,6 +639,7 @@ class JX3API:
             * `name`：歌曲名称，搜索指定歌曲的音乐编号
         """
         ...
+
     async def data_music_netease(self, *, name: str) -> Response:
         """
         说明:
@@ -568,8 +649,9 @@ class JX3API:
             * `name`：歌曲名称，搜索指定歌曲的音乐编号
         """
         ...
+
     async def data_chat_tencent(
-        self, *, secretId: str, secretKey: str, name: str, question: str
+            self, *, secretId: str, secretKey: str, name: str, question: str
     ) -> Response:
         """
         说明:
@@ -582,19 +664,20 @@ class JX3API:
             * `question`：对话内容
         """
         ...
+
     async def data_voice_alitts(
-        self,
-        *,
-        appkey: str,
-        access: str,
-        secret: str,
-        voice: str,
-        format: str,
-        sample_rate: int,
-        volume: int,
-        speech_rate: int,
-        pitch_rate: int,
-        text: str
+            self,
+            *,
+            appkey: str,
+            access: str,
+            secret: str,
+            voice: str,
+            format: str,
+            sample_rate: int,
+            volume: int,
+            speech_rate: int,
+            pitch_rate: int,
+            text: str
     ) -> Response:
         """
         说明:
@@ -612,12 +695,14 @@ class JX3API:
             * `pitch_rate`： 音调，取值范围：-500～500，默认：0
         """
         ...
+
     async def data_useless_flatterer(self) -> Response:
         """
         说明:
             召唤一条舔狗日记。
         """
         ...
+
     async def data_idiom_search(self, *, name: str) -> Response:
         """
         说明:
@@ -627,10 +712,11 @@ class JX3API:
             * `name`：输入四字成语，已去除收尾同音成语。
         """
         ...
+
     # ------------------------------------------------------------
     #                      VIEW  API
     # ------------------------------------------------------------
-    async def view_sand_search(self, *, server: str) -> Response:
+    async def view_server_sand(self, *, server: str, robot: str, token: str) -> Response:
         """
         说明：
             图片api，查询阵营沙盘
@@ -639,8 +725,9 @@ class JX3API:
             * `server`：服务器名
         """
         ...
+
     async def view_active_calculate(
-        self, *, robot: str, cache: int = ..., num: int = ...
+            self, *, robot: str, cache: int = ..., num: int = ...
     ) -> Response:
         """
         说明:
@@ -652,8 +739,9 @@ class JX3API:
             * `num`：预测时间，预测指定时间内的日常；默认值 : 15
         """
         ...
+
     async def view_home_flower(
-        self, *, server: str, robot: str, name: str = ..., cache: int = ...
+            self, *, server: str, robot: str, name: str = ..., cache: int = ...
     ) -> Response:
         """
         说明:
@@ -666,8 +754,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_trade_demon(
-        self, *, server: str, robot: str, limit: int = ..., cache: int = ...
+            self, *, server: str, robot: str, limit: int = ..., cache: int = ...
     ) -> Response:
         """
         说明:
@@ -680,8 +769,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_trade_server_demon(
-        self, *, robot: str, limit: int = ..., cache: int = ...
+            self, *, robot: str, limit: int = ..., cache: int = ...
     ) -> Response:
         """
         说明:
@@ -693,8 +783,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_trade_search(
-        self, *, name: str, robot: str, cache: int = ...
+            self, *, name: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -706,8 +797,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
-    async def view_lucky_serendipity(
-        self, *, server: str, name: str, robot: str, ticket: str = ...
+
+    async def view_luck_serendipity(
+            self, *, server: str, name: str, robot: str, ticket: str = ...
     ) -> Response:
         """
         说明:
@@ -721,8 +813,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
-    async def view_lucky_statistical(
-        self, *, server: str, name: str, robot: str, limit: int = ..., cache: int = ...
+
+    async def view_luck_statistical(
+            self, *, server: str, name: str, robot: str, limit: int = ..., cache: int = ...
     ) -> Response:
         """
         说明:
@@ -736,8 +829,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
-    async def view_lucky_collect(
-        self, *, server: str, robot: str, cache: int = ...
+
+    async def view_luck_collect(
+            self, *, server: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -749,7 +843,8 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
-    async def view_lucky_server_serendipity(self, *, name: str, robot: str) -> Response:
+
+    async def view_luck_server_serendipity(self, *, name: str, robot: str) -> Response:
         """
         说明:
             图片api，统计全服奇遇记录，全服奇遇
@@ -760,7 +855,8 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
-    async def view_lucky_server_statistical(self, *, name: str, robot: str) -> Response:
+
+    async def view_luck_server_statistical(self, *, name: str, robot: str) -> Response:
         """
         说明:
             图片api，统计全服近期奇遇记录，全服统计
@@ -771,8 +867,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_role_attribute(
-        self, *, server: str, name: str, ticket: str, robot: str, cache: int = ...
+            self, *, server: str, name: str, ticket: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -786,8 +883,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_role_firework(
-        self, *, server: str, name: str, robot: str, cache: int = ...
+            self, *, server: str, name: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -800,8 +898,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_arena_recent(
-        self, *, server: str, name: str, ticket: str, robot: str, mode: int = ...
+            self, *, server: str, name: str, ticket: str, robot: str, mode: int = ...
     ) -> Response:
         """
         说明:
@@ -815,8 +914,9 @@ class JX3API:
             * `mode`：比赛模式，查询指定模式的战绩记录
         """
         ...
+
     async def view_arena_awesome(
-        self, *, ticket: str, robot: str, mode: int = ..., cache: int = ...
+            self, *, ticket: str, robot: str, mode: int = ..., cache: int = ...
     ) -> Response:
         """
         说明:
@@ -829,8 +929,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_arena_schools(
-        self, *, ticket: str, robot: str, mode: int = ..., cache: int = ...
+            self, *, ticket: str, robot: str, mode: int = ..., cache: int = ...
     ) -> Response:
         """
         说明:
@@ -843,6 +944,7 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_web_news(self, *, url: str) -> Response:
         """
         说明:
@@ -852,6 +954,7 @@ class JX3API:
             * `url`：新闻资讯或维护公告链接，截图指定页面
         """
         ...
+
     async def view_web_announce(self, *, robot: str, cache: int = ...) -> Response:
         """
         说明:
@@ -862,8 +965,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_team_items_statistical(
-        self, *, server: str, name: str, robot: str, cache: int = ...
+            self, *, server: str, name: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -876,8 +980,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_team_items_collect(
-        self, *, server: str, robot: str, cache: int = ...
+            self, *, server: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -889,8 +994,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
-    async def view_team_member_recruit(
-        self, *, server: str, robot: str, keyword: str = ..., cache: int = ...
+
+    async def view_member_recruit(
+            self, *, server: str, robot: str, keyword: str = ..., cache: int = ..., token: str
     ) -> Response:
         """
         说明:
@@ -903,8 +1009,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_rank_various(
-        self, *, type: str, server: str, robot: str, cache: int = ...
+            self, *, type: str, server: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -917,8 +1024,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_rank_tribe(
-        self, *, type: str, server: str, robot: str, cache: int = ...
+            self, *, type: str, server: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -931,8 +1039,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_rank_excellent(
-        self, *, type: str, server: str, robot: str, cache: int = ...
+            self, *, type: str, server: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -945,8 +1054,9 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_rank_trials(
-        self, *, school: str, server: str, robot: str, cache: int = ...
+            self, *, school: str, server: str, robot: str, cache: int = ...
     ) -> Response:
         """
         说明:
@@ -959,6 +1069,7 @@ class JX3API:
             * `cache`：缓存模式，缓存模式下有效提高返回速度，可选范围[0-1]，默认值 : 1
         """
         ...
+
     async def view_useless_circles(self, *, url: str, text: str) -> Response:
         """
         说明:
@@ -969,6 +1080,7 @@ class JX3API:
             * `text`：奇遇名称，建议六个字以内
         """
         ...
+
     async def view_useless_news(self) -> Response:
         """
         说明:

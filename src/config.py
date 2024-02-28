@@ -19,6 +19,16 @@ class Jx3ApiConfig(BaseModel, extra=Extra.ignore):
     """主站的token"""
 
 
+class Jx3ApiV2Config(BaseModel, extra=Extra.ignore):
+    """
+    jx3api的配置
+    """
+    api_url: str = Field("", alias="jx3api_url")
+    """主站的url"""
+    api_token: str = Field("", alias="jx3api_v2_token")
+    """主站的token"""
+
+
 class NlpConfig(BaseModel, extra=Extra.ignore):
     """
     nlp配置
@@ -124,6 +134,8 @@ class LogsConfig(BaseModel, extra=Extra.ignore):
 config = get_driver().config
 jx3api_config = Jx3ApiConfig.parse_obj(config)
 """jx3api的配置"""
+jx3api_v2_config = Jx3ApiV2Config.parse_obj(config)
+"""jx3万宝楼"""
 nlp_config = NlpConfig.parse_obj(config)
 """nlp配置"""
 voice_config = VoiceConfig.parse_obj(config)

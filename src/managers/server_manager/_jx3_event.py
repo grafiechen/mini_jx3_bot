@@ -1,12 +1,15 @@
+import time
 from abc import abstractmethod
 from datetime import datetime
 from typing import Literal, Optional
-
+from src.utils.log import logger
 from nonebot.adapters import Event as BaseEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
 from pydantic import BaseModel, Extra, validator
+
+from src.modules.baizhanyiwenlu_info import BaiZhanYiWenLuInfo
 
 
 class EventRister:
@@ -27,7 +30,10 @@ class EventRister:
     def get_event(cls, ws_data: "WsData") -> Optional["RecvEvent"]:
         event = cls.event_dict.get(ws_data.action)
         if event:
-            return event.parse_obj(ws_data.data)
+            try:
+                return event.parse_obj(ws_data.data)
+            except Exception as error:
+                logger.error(f"ws event data序列化失败：<g>{ws_data},error: {error}</g>")
         return None
 
 
@@ -155,6 +161,7 @@ class ServerStatusEvent(RecvEvent):
     def get_message(self) -> Message:
         time_now = datetime.now().strftime("%H时%M分")
         if self.status:
+            BaiZhanYiWenLuInfo.update_info_when_server_reopen(open_time=time.time())
             return Message(f"时间：{time_now}\n[{self.server}] 开服啦！")
         else:
             return Message(f"时间{time_now}\n[{self.server}]维护惹。")
@@ -255,14 +262,14 @@ class HorseCatchedEvent(RecvEvent):
 
     __event__ = "WsRecv.HorseCatched"
     message_type = "HorseCatched"
-    name: str
-    """触发角色名"""
+    """大区"""
+    zone: str
+    """服务器"""
+    server: str
+    """地图名称"""
     map: str
-    """地图"""
-    horse: str
-    """马驹名"""
+    """时间戳"""
     time: str
-    """事件时间"""
 
     @validator("time", pre=True)
     def check_time(cls, v):
@@ -485,3 +492,35 @@ class DisSubscribeEvent(RecvEvent):
     @overrides(RecvEvent)
     def get_message(self) -> Message:
         return Message(f"[取消订阅回执]\n类型：{self.action}。")
+
+
+@EventRister.rister(action=1009)
+class ZhuEEvent(RecvEvent):
+    """诛恶事件"""
+
+    __event__ = "WsRecv.ZhuEShiJian"
+    message_type = "ZhuEShiJian"
+    """大区"""
+    # zone: str
+    """服务器"""
+    server: str
+    """地图名称"""
+    map_name: str
+    """时间戳"""
+    time: str
+
+    @validator("time", pre=True)
+    def check_time(cls, v):
+        start_trans = datetime.fromtimestamp(int(v))
+        return start_trans.strftime("%H:%M:%S")
+
+    @property
+    def log(self) -> str:
+        log = f"[诛恶事件] 在 {self.time} 触发了，众侠士可前往 {self.server}-{self.map_name} 一探究竟。  ̋(๑˃́ꇴ˂̀๑)！"
+        return log
+
+    @overrides(RecvEvent)
+    def get_message(self) -> Message:
+        return Message(
+            f"[诛恶事件] 在 {self.time} 触发了，侠士可前往【 {self.map_name} 】一探究竟。 (๑˃́ꇴ˂̀๑)！"
+        )
